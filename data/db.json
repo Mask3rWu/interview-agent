@@ -1,0 +1,248 @@
+{
+  "resumes": {
+    "52af277f-c047-47de-88e7-0780441f279d": {
+      "name": "张三",
+      "raw_text": "Python 5年 电商 Redis MySQL Docker K8s",
+      "skills_json": {},
+      "potential_questions_json": [],
+      "markdown_path": "",
+      "id": "52af277f-c047-47de-88e7-0780441f279d"
+    }
+  },
+  "jobs": {
+    "c352b3d4-56c9-4270-8439-0b53d2248810": {
+      "name": "高级后端",
+      "company": "ABC",
+      "raw_text": "分布式 高并发 Go Python",
+      "must_have_skills_json": [],
+      "domain": "",
+      "level": "",
+      "markdown_path": "",
+      "id": "c352b3d4-56c9-4270-8439-0b53d2248810"
+    }
+  },
+  "materials": {
+    "12664041-d438-45c5-b306-bf00fafaea0b": {
+      "name": "Redis面试题",
+      "type": "markdown",
+      "raw_text": "## Redis 持久化\nRDB 是快照持久化，AOF 是追加写日志。\n## Redis 脑裂\n网络分区时可能出现两个 master。",
+      "enabled": true,
+      "markdown_path": "",
+      "id": "12664041-d438-45c5-b306-bf00fafaea0b"
+    }
+  },
+  "interviews": {
+    "8a97e333-9a2f-4c2a-9735-bc30798eb4a0": {
+      "resume_profile_id": "52af277f-c047-47de-88e7-0780441f279d",
+      "job_profile_id": "c352b3d4-56c9-4270-8439-0b53d2248810",
+      "selected_material_ids": [
+        "12664041-d438-45c5-b306-bf00fafaea0b"
+      ],
+      "status": "ended",
+      "messages": [
+        {
+          "role": "interviewer",
+          "content": "你好！欢迎参加今天的模拟面试。首先请你简单介绍一下自己，以及你最有代表性的一个项目经历？"
+        },
+        {
+          "role": "user",
+          "content": "第1轮：我对Redis有一定了解，项目中用RDB做备份"
+        },
+        {
+          "role": "interviewer",
+          "content": "这个方案有什么局限性吗？如果重新设计你会怎么改？"
+        },
+        {
+          "role": "user",
+          "content": "第2轮：我对Redis有一定了解，项目中用RDB做备份"
+        },
+        {
+          "role": "interviewer",
+          "content": "你提到了性能优化，能详细展开一下你做了哪些优化吗？具体提升了多少？"
+        },
+        {
+          "role": "user",
+          "content": "第3轮：我对Redis有一定了解，项目中用RDB做备份"
+        },
+        {
+          "role": "interviewer",
+          "content": "那我们聊聊编程基础。能说说 Python 的 GIL 是什么，以及它如何影响并发？"
+        },
+        {
+          "role": "user",
+          "content": "第4轮：我对Redis有一定了解，项目中用RDB做备份"
+        }
+      ],
+      "current_topic": "高级后端岗位核心要求",
+      "covered_topics": [],
+      "follow_up_count": 0,
+      "unclear_count": 0,
+      "current_round": 4,
+      "max_rounds": 4,
+      "assessment": {
+        "total_score": 10,
+        "tech_score": 5,
+        "communication_score": 15,
+        "highlights": [
+          "无明显亮点"
+        ],
+        "weaknesses": [
+          "候选人连续四轮使用完全相同的回答，未能回答任何实际问题",
+          "无法讨论Redis基础概念（除了RDB外缺乏其他了解）",
+          "无法展开性能优化的具体内容",
+          "无法解释Python GIL这一基础编程概念",
+          "缺乏基本的沟通响应能力，问题回答与提问内容不相关",
+          "未展示任何项目经验的具体细节"
+        ],
+        "suggested_review": [
+          "建议重新学习Redis相关知识，包括AOF持久化、主从复制、哨兵机制等",
+          "建议系统学习Python并发编程，理解GIL的概念及多线程/多进程的使用场景",
+          "建议准备一个完整的项目介绍，包括技术选型、问题解决、结果量化等",
+          "建议提升面试中的沟通能力，确保能够针对性地回答问题"
+        ],
+        "memory_updates": [
+          {
+            "topic": "Redis持久化机制",
+            "category": "缓存系统",
+            "performance": "vague",
+            "evidence": "仅提及RDB做备份，无法详细说明RDB与AOF的区别及各自优缺点"
+          },
+          {
+            "topic": "Python GIL",
+            "category": "编程基础",
+            "performance": "wrong",
+            "evidence": "候选人对GIL问题未给出任何有效回答"
+          },
+          {
+            "topic": "性能优化",
+            "category": "工程能力",
+            "performance": "wrong",
+            "evidence": "未能具体说明任何优化措施或量化结果"
+          },
+          {
+            "topic": "项目经验表达",
+            "category": "综合能力",
+            "performance": "wrong",
+            "evidence": "未能展示任何具体项目经验，连续四轮重复相同回答"
+          }
+        ]
+      },
+      "memory_updates": [
+        {
+          "topic": "Redis持久化机制",
+          "category": "缓存系统",
+          "performance": "vague",
+          "evidence": "仅提及RDB做备份，无法详细说明RDB与AOF的区别及各自优缺点"
+        },
+        {
+          "topic": "Python GIL",
+          "category": "编程基础",
+          "performance": "wrong",
+          "evidence": "候选人对GIL问题未给出任何有效回答"
+        },
+        {
+          "topic": "性能优化",
+          "category": "工程能力",
+          "performance": "wrong",
+          "evidence": "未能具体说明任何优化措施或量化结果"
+        },
+        {
+          "topic": "项目经验表达",
+          "category": "综合能力",
+          "performance": "wrong",
+          "evidence": "未能展示任何具体项目经验，连续四轮重复相同回答"
+        }
+      ],
+      "created_at": "2026-05-22T11:16:29.378007",
+      "id": "8a97e333-9a2f-4c2a-9735-bc30798eb4a0",
+      "assessment_status": "success",
+      "assessment_error": ""
+    }
+  },
+  "knowledge_memories": {
+    "ccd642b1-6128-4eea-8d93-bc4b6d39ff0b": {
+      "topic": "Redis持久化机制",
+      "category": "缓存系统",
+      "mastery_score": 0.42,
+      "exposure_count": 1,
+      "weakness_count": 1,
+      "last_tested_at": "2026-05-22T11:16:29.378007",
+      "next_review_at": "2026-05-25T11:16:29.378007",
+      "evidence_json": [
+        {
+          "interview_id": "8a97e333-9a2f-4c2a-9735-bc30798eb4a0",
+          "performance": "vague",
+          "timestamp": "2026-05-22T11:16:29.378007"
+        }
+      ],
+      "source_interview_ids": [
+        "8a97e333-9a2f-4c2a-9735-bc30798eb4a0"
+      ],
+      "updated_at": "2026-05-22T16:54:43.442238",
+      "id": "ccd642b1-6128-4eea-8d93-bc4b6d39ff0b"
+    },
+    "71a0a761-c42b-4532-89ec-0709fb7693dd": {
+      "topic": "Python GIL",
+      "category": "编程基础",
+      "mastery_score": 0.35,
+      "exposure_count": 1,
+      "weakness_count": 1,
+      "last_tested_at": "2026-05-22T11:16:29.378007",
+      "next_review_at": "2026-05-23T11:16:29.378007",
+      "evidence_json": [
+        {
+          "interview_id": "8a97e333-9a2f-4c2a-9735-bc30798eb4a0",
+          "performance": "wrong",
+          "timestamp": "2026-05-22T11:16:29.378007"
+        }
+      ],
+      "source_interview_ids": [
+        "8a97e333-9a2f-4c2a-9735-bc30798eb4a0"
+      ],
+      "updated_at": "2026-05-22T16:54:43.442734",
+      "id": "71a0a761-c42b-4532-89ec-0709fb7693dd"
+    },
+    "a3877e58-16a3-4c40-95c8-cf7c93108726": {
+      "topic": "性能优化",
+      "category": "工程能力",
+      "mastery_score": 0.35,
+      "exposure_count": 1,
+      "weakness_count": 1,
+      "last_tested_at": "2026-05-22T11:16:29.378007",
+      "next_review_at": "2026-05-23T11:16:29.378007",
+      "evidence_json": [
+        {
+          "interview_id": "8a97e333-9a2f-4c2a-9735-bc30798eb4a0",
+          "performance": "wrong",
+          "timestamp": "2026-05-22T11:16:29.378007"
+        }
+      ],
+      "source_interview_ids": [
+        "8a97e333-9a2f-4c2a-9735-bc30798eb4a0"
+      ],
+      "updated_at": "2026-05-22T16:54:43.443262",
+      "id": "a3877e58-16a3-4c40-95c8-cf7c93108726"
+    },
+    "103e14ac-ea25-4d1b-9541-a401c3eed9dc": {
+      "topic": "项目经验表达",
+      "category": "综合能力",
+      "mastery_score": 0.35,
+      "exposure_count": 1,
+      "weakness_count": 1,
+      "last_tested_at": "2026-05-22T11:16:29.378007",
+      "next_review_at": "2026-05-23T11:16:29.378007",
+      "evidence_json": [
+        {
+          "interview_id": "8a97e333-9a2f-4c2a-9735-bc30798eb4a0",
+          "performance": "wrong",
+          "timestamp": "2026-05-22T11:16:29.378007"
+        }
+      ],
+      "source_interview_ids": [
+        "8a97e333-9a2f-4c2a-9735-bc30798eb4a0"
+      ],
+      "updated_at": "2026-05-22T16:54:43.443854",
+      "id": "103e14ac-ea25-4d1b-9541-a401c3eed9dc"
+    }
+  }
+}

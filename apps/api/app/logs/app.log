@@ -1,0 +1,32 @@
+2026-05-22 16:49:19,690 INFO langchain_openai.chat_models._client_utils _client_utils.py:282 - langchain-openai detected HTTP_PROXY, HTTPS_PROXY, http_proxy, https_proxy and no explicit `http_socket_options` / `http_client` / `http_async_client` / `openai_proxy`; skipping the custom `httpx` transport so httpx's env-proxy auto-detection applies. Pass `http_socket_options=[...]` to opt back into kernel-level TCP keepalive tuning on top of the env proxy.
+2026-05-22 16:49:19,966 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:49:21,393 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:49:21,638 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:49:21,990 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:49:23,286 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:49:23,455 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:49:25,074 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:49:25,270 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:49:28,543 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:49:28,897 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:50:41,700 INFO watchfiles.main main.py:309 - 2 changes detected
+2026-05-22 16:50:42,234 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:50:42,585 INFO watchfiles.main main.py:309 - 3 changes detected
+2026-05-22 16:50:56,149 INFO langchain_openai.chat_models._client_utils _client_utils.py:282 - langchain-openai detected HTTP_PROXY, HTTPS_PROXY, http_proxy, https_proxy and no explicit `http_socket_options` / `http_client` / `http_async_client` / `openai_proxy`; skipping the custom `httpx` transport so httpx's env-proxy auto-detection applies. Pass `http_socket_options=[...]` to opt back into kernel-level TCP keepalive tuning on top of the env proxy.
+2026-05-22 16:50:56,483 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:52:00,920 INFO watchfiles.main main.py:309 - 2 changes detected
+2026-05-22 16:52:01,467 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:52:01,819 INFO watchfiles.main main.py:309 - 3 changes detected
+2026-05-22 16:52:13,481 INFO langchain_openai.chat_models._client_utils _client_utils.py:282 - langchain-openai detected HTTP_PROXY, HTTPS_PROXY, http_proxy, https_proxy and no explicit `http_socket_options` / `http_client` / `http_async_client` / `openai_proxy`; skipping the custom `httpx` transport so httpx's env-proxy auto-detection applies. Pass `http_socket_options=[...]` to opt back into kernel-level TCP keepalive tuning on top of the env proxy.
+2026-05-22 16:52:13,773 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:52:15,418 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:52:15,585 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:52:18,203 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:52:18,308 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:54:33,747 INFO openai._base_client _base_client.py:1740 - Retrying request to /chat/completions in 0.375591 seconds
+2026-05-22 16:54:33,983 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:54:36,898 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:54:37,025 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:54:37,383 INFO watchfiles.main main.py:309 - 1 change detected
+2026-05-22 16:54:38,045 INFO httpx _client.py:1740 - HTTP Request: POST https://api.minimaxi.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 16:54:38,215 INFO watchfiles.main main.py:309 - 1 change detected

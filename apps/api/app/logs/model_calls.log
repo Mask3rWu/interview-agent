@@ -1,0 +1,44 @@
+2026-05-22 16:49:21,562 ERROR model_calls.file model_router.py:88 - agent=question_router model=MiniMax-M2.7 status=failure base_url=https://api.minimaxi.com/v1 reason=ValueError: expected value at line 1 column 1 elapsed_ms=1571
+Traceback (most recent call last):
+  File "/home/wu/interviewAgent/apps/api/app/agents/nodes/question_router.py", line 36, in question_router_node
+    decision = await structured_llm.ainvoke([
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3375, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5894, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 497, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1834, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1792, in agenerate
+    raise exceptions[0]
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 2084, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3373, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1850, in _astream
+    async for chunk in _astream_with_chunk_timeout(
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/langchain_openai/chat_models/_client_utils.py", line 650, in _astream_with_chunk_timeout
+    chunk = await asyncio.wait_for(it.__anext__(), timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/asyncio/tasks.py", line 489, in wait_for
+    return fut.result()
+           ^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 194, in __aiter__
+    async for item in self._iterator:
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 240, in __stream__
+    events_to_fire = self._state.handle_chunk(sse_event)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 345, in handle_chunk
+    self.__current_completion_snapshot = self._accumulate_chunk(chunk)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wu/anaconda3/envs/agent-py311/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 443, in _accumulate_chunk
+    choice_snapshot.message.parsed = from_json(
+                                     ^^^^^^^^^^
+ValueError: expected value at line 1 column 1
+2026-05-22 16:49:28,289 INFO model_calls.file model_router.py:68 - agent=assessment model=MiniMax-M2.7 status=success base_url=https://api.minimaxi.com/v1 elapsed_ms=6721
