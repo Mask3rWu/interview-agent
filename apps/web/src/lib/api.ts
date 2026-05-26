@@ -19,7 +19,11 @@ export const api = {
 
   listResumes: () => request<{ id: string; name: string }[]>("/resumes"),
 
-  getResume: (id: string) => request<{ id: string; name: string; raw_text: string }>(`/resumes/${id}`),
+  getResume: (id: string) => request<{
+    id: string; name: string; raw_text: string; markdown_path: string;
+    summary_json: { summary?: string }; skills_json: Record<string, string[]>;
+    project_highlights: string[]; potential_questions_json: string[];
+  }>(`/resumes/${id}`),
 
   // Jobs
   createJob: (data: { name: string; company?: string; raw_text: string }) =>
@@ -27,15 +31,24 @@ export const api = {
 
   listJobs: () => request<{ id: string; name: string }[]>("/jobs"),
 
-  getJob: (id: string) => request<{ id: string; name: string; raw_text: string; company: string }>(`/jobs/${id}`),
+  getJob: (id: string) => request<{
+    id: string; name: string; raw_text: string; company: string; markdown_path: string;
+    summary_json: { summary?: string }; must_have_skills_json: string[];
+    domain: string; level: string;
+  }>(`/jobs/${id}`),
 
   // Materials
   createMaterial: (data: { name: string; type?: string; raw_text: string }) =>
     request<{ id: string; name: string }>("/materials", { method: "POST", body: JSON.stringify(data) }),
 
-  listMaterials: () => request<{ id: string; name: string; enabled: boolean }[]>("/materials"),
+  listMaterials: () => request<{
+    id: string; name: string; enabled: boolean; chunk_count: number; embedding_status: string;
+  }[]>("/materials"),
 
-  getMaterial: (id: string) => request<{ id: string; name: string; raw_text: string }>(`/materials/${id}`),
+  getMaterial: (id: string) => request<{
+    id: string; name: string; raw_text: string; chunk_count: number;
+    embedding_status: string; markdown_path: string;
+  }>(`/materials/${id}`),
 
   // Interviews
   createInterview: (data: {
@@ -64,7 +77,6 @@ export const api = {
     assessment_status: "pending" | "success" | "failed";
     assessment_error: string;
     created_at: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }>(`/interviews/${id}`),
 
   submitAnswer: (sessionId: string, answer: string) =>
@@ -73,7 +85,7 @@ export const api = {
       { method: "POST", body: JSON.stringify({ answer }) }
     ),
 
-  submitAnswerStream: (sessionId: string, answer: string): EventSource => {
+  submitAnswerStream: (sessionId: string): EventSource => {
     const es = new EventSource(
       `${API_BASE}/interviews/${sessionId}/answer/stream`
     );
@@ -100,7 +112,6 @@ export const api = {
       id: string; topic: string; mastery_score: number; exposure_count: number;
       weakness_count: number; last_tested_at: string | null;
       next_review_at: string | null; source_interview_ids: string[];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }[]>(`/memory?sort_by=${sortBy}`),
 
   rebuildMemories: () =>

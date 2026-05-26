@@ -3,7 +3,9 @@ export interface ResumeProfile {
   name: string;
   raw_text: string;
   markdown_path: string;
+  summary_json: { summary?: string };
   skills_json: Record<string, string[]>;
+  project_highlights: string[];
   potential_questions_json: string[];
   created_at: string;
   updated_at: string;
@@ -15,6 +17,7 @@ export interface JobProfile {
   company: string;
   raw_text: string;
   markdown_path: string;
+  summary_json: { summary?: string };
   must_have_skills_json: string[];
   domain: string;
   level: string;
@@ -29,6 +32,8 @@ export interface Material {
   raw_text: string;
   markdown_path: string;
   enabled: boolean;
+  chunk_count: number;
+  embedding_status: string;
   created_at: string;
 }
 
@@ -47,6 +52,9 @@ export interface InterviewSession {
   max_rounds: number;
   assessment: AssessmentResult | null;
   memory_updates: MemoryUpdate[];
+  transcript_path: string;
+  report_path: string;
+  router_source: string;
   created_at: string;
 }
 

@@ -40,21 +40,18 @@ export default function HistoryPage() {
   const [interviews, setInterviews] = useState<InterviewSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<InterviewDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     api.listInterviews().then(setInterviews).finally(() => setLoading(false));
   }, []);
 
   const openDetail = async (id: string) => {
-    setDetailLoading(true);
     try {
       const detail = await api.getInterview(id);
       setSelected(detail as InterviewDetail);
     } catch {
       alert("加载面试详情失败");
     }
-    setDetailLoading(false);
   };
 
   const formatDate = (iso: string) => {

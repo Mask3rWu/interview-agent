@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { streamAnswer } from "@/lib/sse";
 
 interface Option {
-  id: string; name: string;
+  id: string; name: string; chunk_count?: number; embedding_status?: string;
 }
 
 interface ChatMessage {
@@ -23,6 +23,7 @@ export default function InterviewPage() {
   const [selResume, setSelResume] = useState("");
   const [selJob, setSelJob] = useState("");
   const [selMaterials, setSelMaterials] = useState<string[]>([]);
+  const [materialMode, setMaterialMode] = useState<"none" | "partial" | "all">("partial");
   const [maxRounds, setMaxRounds] = useState(6);
 
   // Interview state
@@ -36,7 +37,6 @@ export default function InterviewPage() {
   const [assessment, setAssessment] = useState<{
     total_score: number; tech_score: number; communication_score: number;
     highlights: string[]; weaknesses: string[]; suggested_review: string[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } | null>(null);
 
   const chatEnd = useRef<HTMLDivElement>(null);
@@ -64,6 +64,7 @@ export default function InterviewPage() {
         resume_profile_id: selResume || null,
         job_profile_id: selJob || null,
         material_ids: selMaterials,
+        use_all_materials: materialMode === "all",
         max_rounds: maxRounds,
       });
       setSessionId(data.session_id);
@@ -204,9 +205,28 @@ export default function InterviewPage() {
 
           {/* Materials selection */}
           <div>
-            <label className="text-sm font-medium text-zinc-600 mb-1 block">选择面试资料（可多选）</label>
+            <label className="text-sm font-medium text-zinc-600 mb-2 block">资料策略</label>
+            <div className="flex gap-2 mb-3">
+              {[
+                { key: "none", label: "不使用资料" },
+                { key: "partial", label: "部分资料" },
+                { key: "all", label: "全部资料" },
+              ].map((mode) => (
+                <button
+                  key={mode.key}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border ${
+                    materialMode === mode.key
+                      ? "bg-zinc-900 text-white border-zinc-900"
+                      : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                  }`}
+                  onClick={() => setMaterialMode(mode.key as typeof materialMode)}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
             {materials.length === 0 && <p className="text-xs text-zinc-400">暂无可选资料</p>}
-            <div className="flex flex-wrap gap-2">
+            <div className={`flex flex-wrap gap-2 ${materialMode !== "partial" ? "opacity-50 pointer-events-none" : ""}`}>
               {materials.map((m) => (
                 <button
                   key={m.id}
@@ -218,6 +238,7 @@ export default function InterviewPage() {
                   onClick={() => toggleMaterial(m.id)}
                 >
                   {m.name}
+                  {m.chunk_count != null && <span className="ml-1 text-[10px] opacity-70">{m.chunk_count}</span>}
                 </button>
               ))}
             </div>

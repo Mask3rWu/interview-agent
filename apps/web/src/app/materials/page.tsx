@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 
 interface Material {
   id: string; name: string; type: string; raw_text: string; enabled: boolean; created_at: string;
+  chunk_count: number; embedding_status: string; markdown_path?: string;
 }
 
 export default function MaterialsPage() {
@@ -20,7 +21,13 @@ export default function MaterialsPage() {
     setMaterials(data as Material[]);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let mounted = true;
+    api.listMaterials().then((data) => {
+      if (mounted) setMaterials(data as Material[]);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   const create = async () => {
     if (!name || !rawText) return;
@@ -74,11 +81,19 @@ export default function MaterialsPage() {
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">{m.name}</span>
                 <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">{m.type}</span>
+                <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                  {m.chunk_count} chunks
+                </span>
+                <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">{m.embedding_status}</span>
               </div>
               <span className="text-xs text-zinc-400">{m.created_at?.slice(0, 10)}</span>
             </button>
             {expanded === m.id && detail && (
               <div className="px-4 pb-4 border-t border-zinc-100 pt-3">
+                <div className="mb-3 flex gap-2 text-xs text-zinc-500">
+                  <span>Markdown: {detail.markdown_path || "-"}</span>
+                  <span>Chunks: {detail.chunk_count}</span>
+                </div>
                 <pre className="text-xs text-zinc-600 whitespace-pre-wrap font-mono">{detail.raw_text}</pre>
               </div>
             )}

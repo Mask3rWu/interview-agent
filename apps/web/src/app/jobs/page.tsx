@@ -5,6 +5,11 @@ import { api } from "@/lib/api";
 
 interface Job {
   id: string; name: string; company: string; raw_text: string; created_at: string;
+  markdown_path?: string;
+  summary_json?: { summary?: string };
+  must_have_skills_json?: string[];
+  domain?: string;
+  level?: string;
 }
 
 export default function JobsPage() {
@@ -21,7 +26,13 @@ export default function JobsPage() {
     setJobs(data as Job[]);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let mounted = true;
+    api.listJobs().then((data) => {
+      if (mounted) setJobs(data as Job[]);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   const create = async () => {
     if (!name || !rawText) return;
@@ -87,8 +98,22 @@ export default function JobsPage() {
               <span className="text-xs text-zinc-400">{j.created_at?.slice(0, 10)}</span>
             </button>
             {expanded === j.id && detail && (
-              <div className="px-4 pb-4 border-t border-zinc-100 pt-3">
-                <pre className="text-xs text-zinc-600 whitespace-pre-wrap font-mono">{detail.raw_text}</pre>
+              <div className="px-4 pb-4 border-t border-zinc-100 pt-3 space-y-4">
+                <div className="flex gap-2">
+                  {detail.domain && <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600">{detail.domain}</span>}
+                  {detail.level && <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600">{detail.level}</span>}
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold text-zinc-500 mb-1">摘要</h3>
+                  <p className="text-sm text-zinc-700">{detail.summary_json?.summary || "暂无摘要"}</p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold text-zinc-500 mb-2">核心要求</h3>
+                  <ul className="space-y-1 text-sm text-zinc-600">
+                    {(detail.must_have_skills_json || []).map((skill, i) => <li key={i}>- {skill}</li>)}
+                  </ul>
+                </div>
+                <pre className="text-xs text-zinc-500 whitespace-pre-wrap font-mono">{detail.raw_text}</pre>
               </div>
             )}
           </div>
