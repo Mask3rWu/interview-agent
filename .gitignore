@@ -6,3 +6,9 @@ __pycache__/
 .DS_Store
 node_modules/
 .next/
+supabase/.temp/
+data/interviews/
+data/jobs/
+data/materials/
+data/reports/
+data/resumes/
