@@ -6,10 +6,15 @@ from datetime import datetime
 
 from langchain_core.messages import HumanMessage, AIMessage
 
-from app.core import json_store
+from app.db import repositories
 from app.schemas.interview import InterviewCreate, InterviewSession, InterviewEvent
 from app.services import resume_service, job_service, material_service, memory_service
-from app.agents.interview_graph import build_interview_graph
+from app.services import markdown_store
+from app.agents.nodes.initializer import initializer_node
+from app.agents.nodes.question_router import question_router_node
+from app.agents.nodes.interviewer import interviewer_node
+from app.agents.nodes.assessment import assessment_node
+from app.agents.nodes.memory_updater import memory_updater_node
 
 
 def create_session(data: InterviewCreate) -> InterviewSession:
@@ -48,10 +53,17 @@ def create_session(data: InterviewCreate) -> InterviewSession:
         "assessment_status": "pending",
         "assessment_error": "",
         "memory_updates": [],
+        "transcript_path": "",
+        "report_path": "",
+        "router_source": "",
+        "retrieved_context": [],
         "created_at": datetime.now().isoformat(),
+        "ended_at": None,
     }
 
-    saved = json_store.insert("interviews", session)
+    saved = repositories.insert("interviews", session)
+    transcript_path = markdown_store.append_transcript(saved["id"], "interviewer", "面试会话已创建。")
+    saved = repositories.update("interviews", saved["id"], {"transcript_path": transcript_path}) or saved
     return InterviewSession(**saved)
 
 
@@ -59,7 +71,7 @@ def list_sessions() -> list[dict]:
     """Return all interview sessions sorted by created_at descending (newest first).
     Returns lightweight summaries — full messages are excluded for performance.
     """
-    records = json_store.list_all("interviews")
+    records = repositories.list_all("interviews")
     summaries = []
     for r in records:
         summaries.append({
@@ -81,14 +93,14 @@ def list_sessions() -> list[dict]:
 
 
 def get_session(session_id: str) -> InterviewSession | None:
-    record = json_store.get("interviews", session_id)
+    record = repositories.get("interviews", session_id)
     if record is None:
         return None
     return InterviewSession(**record)
 
 
 def _save_session(session: InterviewSession) -> None:
-    json_store.update("interviews", session.id, session.model_dump())
+    repositories.update("interviews", session.id, session.model_dump())
 
 
 def _session_to_graph_state(session: InterviewSession) -> dict:
@@ -119,6 +131,8 @@ def _session_to_graph_state(session: InterviewSession) -> dict:
         "assessment_status": getattr(session, "assessment_status", "pending"),
         "assessment_error": getattr(session, "assessment_error", ""),
         "memory_updates": getattr(session, "memory_updates", []),
+        "router_source": getattr(session, "router_source", ""),
+        "report_path": getattr(session, "report_path", ""),
     }
 
 
@@ -141,6 +155,9 @@ def _graph_state_to_session(state: dict, session: InterviewSession) -> None:
     session.assessment = state.get("assessment", session.assessment)
     session.assessment_status = state.get("assessment_status", getattr(session, "assessment_status", "pending"))
     session.assessment_error = state.get("assessment_error", getattr(session, "assessment_error", ""))
+    session.report_path = state.get("report_path", session.report_path)
+    session.router_source = state.get("router_source", session.router_source)
+    session.retrieved_context = state.get("retrieved_context", session.retrieved_context)
 
     mem_updates = state.get("memory_updates", [])
     if mem_updates:
@@ -148,17 +165,19 @@ def _graph_state_to_session(state: dict, session: InterviewSession) -> None:
 
     if state.get("assessment_status") == "success":
         session.status = "ended"
+        session.ended_at = datetime.now().isoformat()
     elif state.get("assessment_status") == "failed":
         session.status = "ended"
+        session.ended_at = datetime.now().isoformat()
 
 
 async def generate_first_question(session: InterviewSession) -> InterviewEvent:
-    graph = build_interview_graph()
     initial_state = _session_to_graph_state(session)
 
-    result = await graph.ainvoke(initial_state)
+    result = await _run_interview_workflow(initial_state)
 
     _graph_state_to_session(result, session)
+    _append_new_transcript_messages(session)
     _save_session(session)
 
     # Extract last AI message as the first question
@@ -180,13 +199,14 @@ async def submit_answer(session_id: str, answer: str) -> InterviewEvent:
 
     # Append user's answer as a message
     session.messages.append({"role": "user", "content": answer})
+    session.transcript_path = markdown_store.append_transcript(session.id, "user", answer)
 
-    graph = build_interview_graph()
     state = _session_to_graph_state(session)
 
-    result = await graph.ainvoke(state)
+    result = await _run_interview_workflow(state)
 
     _graph_state_to_session(result, session)
+    _append_new_transcript_messages(session)
     _save_session(session)
 
     # Check if assessment was generated
@@ -212,16 +232,17 @@ async def finish_interview(session_id: str) -> InterviewEvent:
 
     # Force assessment by setting action to assess
     session.messages.append({"role": "user", "content": "结束面试"})
+    session.transcript_path = markdown_store.append_transcript(session.id, "user", "结束面试")
 
-    graph = build_interview_graph()
     state = _session_to_graph_state(session)
     # Force current_round >= max_rounds to trigger assessment
     state["current_round"] = session.max_rounds
     state["action"] = "assess"
 
-    result = await graph.ainvoke(state)
+    result = await _run_interview_workflow(state)
 
     _graph_state_to_session(result, session)
+    _append_new_transcript_messages(session)
     _save_session(session)
 
     return InterviewEvent(event="assessment", data=session.assessment)
@@ -232,13 +253,13 @@ async def reassess_interview(session_id: str) -> InterviewEvent:
     if session is None:
         return InterviewEvent(event="error", data="Session not found")
 
-    graph = build_interview_graph()
     state = _session_to_graph_state(session)
     state["current_round"] = session.max_rounds
     state["action"] = "assess"
 
-    result = await graph.ainvoke(state)
+    result = await _run_interview_workflow(state)
     _graph_state_to_session(result, session)
+    _append_new_transcript_messages(session)
     _save_session(session)
 
     if session.assessment_status != "success":
@@ -251,3 +272,45 @@ async def reassess_interview(session_id: str) -> InterviewEvent:
             tested_at=session.created_at,
         )
     return InterviewEvent(event="assessment", data=session.assessment)
+
+
+def _append_new_transcript_messages(session: InterviewSession) -> None:
+    stored = repositories.get("interviews", session.id) or {}
+    old_messages = stored.get("messages", [])
+    for message in session.messages[len(old_messages):]:
+        if message.get("role") != "interviewer":
+            continue
+        session.transcript_path = markdown_store.append_transcript(
+            session.id,
+            message.get("role", ""),
+            message.get("content", ""),
+        )
+
+
+async def _run_interview_workflow(state: dict) -> dict:
+    """Execute the same node flow defined by the LangGraph StateGraph.
+
+    The compiled graph remains available in app.agents.interview_graph. This
+    explicit runner keeps the API responsive in local environments where the
+    installed LangGraph version can hang on async message aggregation.
+    """
+    merged = dict(state)
+    await _merge_node_output(merged, await initializer_node(merged))
+    await _merge_node_output(merged, await question_router_node(merged))
+    if merged.get("action") == "assess":
+        await _merge_node_output(merged, await assessment_node(merged))
+        await _merge_node_output(merged, await memory_updater_node(merged))
+    else:
+        await _merge_node_output(merged, await interviewer_node(merged))
+    return merged
+
+
+async def _merge_node_output(state: dict, output: dict | None) -> None:
+    if not output:
+        return
+    for key, value in output.items():
+        if key == "messages":
+            state.setdefault("messages", [])
+            state["messages"].extend(value)
+        else:
+            state[key] = value

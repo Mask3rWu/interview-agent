@@ -27,7 +27,12 @@ class InterviewSession(BaseModel):
     assessment_status: str = "pending"
     assessment_error: str = ""
     memory_updates: list[dict] = Field(default_factory=list)
+    transcript_path: str = ""
+    report_path: str = ""
+    router_source: str = ""
+    retrieved_context: list[dict] = Field(default_factory=list)
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    ended_at: str | None = None
 
 
 class AnswerRequest(BaseModel):

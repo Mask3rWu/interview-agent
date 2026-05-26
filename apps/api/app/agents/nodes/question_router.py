@@ -45,17 +45,17 @@ async def question_router_node(state: InterviewState) -> dict:
                 if not decision:
                     raise ValueError("empty structured response")
                 log_llm_success("question_router", started_ms)
-                return _apply_decision(decision, follow_up_count, unclear_count, current_round, max_rounds)
+                return _apply_decision(decision, follow_up_count, unclear_count, current_round, max_rounds, "llm")
             except Exception as exc:
                 log_llm_failure("question_router", exc, started_ms)
 
     # Mock decision
     decision = mock_router_decision(latest_answer, follow_up_count, current_round, max_rounds)
-    return _apply_decision(decision, follow_up_count, unclear_count, current_round, max_rounds)
+    return _apply_decision(decision, follow_up_count, unclear_count, current_round, max_rounds, "mock")
 
 
 def _apply_decision(decision, follow_up_count: int, unclear_count: int,
-                    current_round: int, max_rounds: int) -> dict:
+                    current_round: int, max_rounds: int, router_source: str) -> dict:
     action = decision if isinstance(decision, dict) else decision.model_dump()
 
     # Force assess if max rounds reached
@@ -64,24 +64,34 @@ def _apply_decision(decision, follow_up_count: int, unclear_count: int,
             "action": "assess",
             "follow_up_count": follow_up_count,
             "unclear_count": unclear_count,
+            "router_source": router_source,
         }
 
-    result = {"action": action["action"]}
+    if follow_up_count >= 3:
+        action["action"] = "switch_topic"
+
+    next_unclear_count = unclear_count
+    if action.get("quality") in ("unknown", "wrong"):
+        next_unclear_count = unclear_count + 1
+    else:
+        next_unclear_count = 0
+
+    if next_unclear_count >= 2:
+        action["action"] = "switch_topic"
+
+    result = {"action": action["action"], "router_source": router_source}
 
     if action["action"] == "follow_up":
         result["follow_up_count"] = follow_up_count + 1
-        result["unclear_count"] = unclear_count
+        result["unclear_count"] = next_unclear_count
     elif action["action"] == "switch_topic":
         result["follow_up_count"] = 0
-        result["unclear_count"] = unclear_count
+        result["unclear_count"] = next_unclear_count
     else:
         result["follow_up_count"] = follow_up_count
-        result["unclear_count"] = unclear_count
+        result["unclear_count"] = next_unclear_count
 
     if action["action"] == "switch_topic" and action.get("next_topic"):
         result["current_topic"] = action["next_topic"]
-
-    if action.get("quality") in ("unknown", "wrong"):
-        result["unclear_count"] = unclear_count + 1
 
     return result

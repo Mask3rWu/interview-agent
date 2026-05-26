@@ -15,4 +15,6 @@ class MaterialResponse(BaseModel):
     raw_text: str
     markdown_path: str = ""
     enabled: bool = True
+    chunk_count: int = 0
+    embedding_status: str = "pending"
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())

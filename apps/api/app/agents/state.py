@@ -25,3 +25,5 @@ class InterviewState(TypedDict):
     assessment_status: Literal["pending", "success", "failed"]
     assessment_error: str
     memory_updates: list[dict]
+    router_source: str
+    report_path: str

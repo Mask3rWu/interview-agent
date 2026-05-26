@@ -1,9 +1,10 @@
 """
 Interviewer node: generates the next interviewer question.
-Uses RAG context (mock keyword search for now) and current topic.
+Uses RAG context and current topic.
 """
 from app.agents.state import InterviewState
 from app.services.mock_llm import mock_interviewer_question
+from app.rag.retrieval import format_context, retrieve_material_context
 from app.services.model_router import (
     get_llm,
     is_llm_available,
@@ -29,8 +30,8 @@ async def interviewer_node(state: InterviewState) -> dict:
     messages = list(state.get("messages", []))
     weakness_memory = state.get("weakness_memory", [])
 
-    # Simple keyword retrieval from materials (placeholder for RAG)
-    context = _keyword_retrieve(current_topic, state)
+    retrieved_chunks = _retrieve_context(current_topic, state)
+    context = format_context(retrieved_chunks)
 
     # Try real LLM first
     if is_llm_available():
@@ -52,6 +53,7 @@ async def interviewer_node(state: InterviewState) -> dict:
                 return {
                     "messages": [AIMessage(content=question_text)],
                     "current_round": state.get("current_round", 0) + 1,
+                    "retrieved_context": retrieved_chunks,
                 }
             except Exception as exc:
                 log_llm_failure("interviewer", exc, started_ms)
@@ -61,6 +63,7 @@ async def interviewer_node(state: InterviewState) -> dict:
     return {
         "messages": [AIMessage(content=question_text)],
         "current_round": state.get("current_round", 0) + 1,
+        "retrieved_context": retrieved_chunks,
     }
 
 
@@ -104,33 +107,19 @@ def _build_system_prompt(action: str, topic: str, context: str, weakness_memory:
     return base
 
 
-def _keyword_retrieve(topic: str, state: InterviewState) -> str:
-    """Simple keyword-based retrieval. Replaced by pgvector in Step 5."""
+def _retrieve_context(topic: str, state: InterviewState) -> list[dict]:
     material_ids = state.get("selected_material_ids", [])
     if not material_ids:
-        return ""
-
-    from app.core import json_store
-
-    chunks = []
-    for mid in material_ids:
-        m = json_store.get("materials", mid)
-        if m is None:
-            continue
-        raw = m.get("raw_text", "")
-        # Very naive keyword match
-        keywords = topic.lower().split()
-        for kw in keywords:
-            if len(kw) >= 2 and kw in raw.lower():
-                # Return a snippet around the keyword
-                idx = raw.lower().find(kw)
-                start = max(0, idx - 100)
-                end = min(len(raw), idx + 300)
-                chunk = raw[start:end]
-                if chunk:
-                    chunks.append(chunk)
-                break
-
-    if chunks:
-        return "\n---\n".join(chunks[:2])
-    return ""
+        return []
+    latest_user_answer = ""
+    for message in reversed(state.get("messages", [])):
+        if getattr(message, "type", "") == "human":
+            latest_user_answer = message.content
+            break
+    job = state.get("job_profile") or {}
+    query = " ".join([
+        topic or "",
+        job.get("domain", ""),
+        latest_user_answer,
+    ]).strip()
+    return retrieve_material_context(query, material_ids, top_k=2)

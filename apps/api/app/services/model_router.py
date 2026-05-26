@@ -9,6 +9,7 @@ from app.core.config import (
     DEFAULT_LLM_BASE_URL,
     DEFAULT_LLM_API_KEY,
     DEFAULT_LLM_MODEL,
+    DEFAULT_LLM_TIMEOUT_SECONDS,
     RESUME_ANALYZER_MODEL,
     JOB_ANALYZER_MODEL,
     QUESTION_ROUTER_MODEL,
@@ -38,7 +39,7 @@ def get_model_name(agent: str) -> str:
 
 
 def is_llm_available() -> bool:
-    return bool(DEFAULT_LLM_API_KEY and DEFAULT_LLM_BASE_URL and DEFAULT_LLM_MODEL)
+    return bool(DEFAULT_LLM_API_KEY and DEFAULT_LLM_BASE_URL.strip() and DEFAULT_LLM_MODEL)
 
 
 def get_llm(agent: str):
@@ -53,11 +54,12 @@ def get_llm(agent: str):
 
     model = get_model_name(agent)
     return ChatOpenAI(
-        base_url=DEFAULT_LLM_BASE_URL,
+        base_url=DEFAULT_LLM_BASE_URL.strip(),
         api_key=DEFAULT_LLM_API_KEY,
         model=model,
         temperature=0.7,
         streaming=True,
+        timeout=DEFAULT_LLM_TIMEOUT_SECONDS,
     )
 
 

@@ -5,7 +5,7 @@ import math
 from datetime import datetime, timedelta
 from typing import Any
 
-from app.core import json_store
+from app.db import repositories
 
 
 HALF_LIFE_DAYS = {
@@ -35,7 +35,7 @@ def _get_half_life(score: float) -> int:
 
 
 def list_memories(sort_by: str = "mastery_score") -> list[dict]:
-    memories = json_store.list_all("knowledge_memories")
+    memories = repositories.list_all("knowledge_memories")
     # Apply decay before returning
     for m in memories:
         _apply_decay(m)
@@ -79,20 +79,20 @@ def apply_memory_updates(
 
         if existing:
             _merge_existing_memory(existing, update, perf, delta, interview_id, tested_at)
-            json_store.update("knowledge_memories", existing["id"], existing)
+            repositories.update("knowledge_memories", existing["id"], existing)
         else:
             record = _new_memory_record(update, perf, delta, interview_id, tested_at)
-            json_store.insert("knowledge_memories", record)
+            repositories.insert("knowledge_memories", record)
 
 
 def rebuild_memories_from_interviews() -> dict:
     interviews = [
-        i for i in json_store.list_all("interviews")
+        i for i in repositories.list_all("interviews")
         if i.get("status") == "ended"
     ]
     interviews.sort(key=lambda i: i.get("created_at") or "")
 
-    json_store.replace_table("knowledge_memories", {})
+    repositories.replace_table("knowledge_memories", {})
 
     success_count = 0
     failure_count = 0
@@ -103,7 +103,7 @@ def rebuild_memories_from_interviews() -> dict:
         interview["assessment_status"] = assessment.get("assessment_status", "failed")
         interview["assessment_error"] = assessment.get("assessment_error", "")
         interview["memory_updates"] = assessment.get("memory_updates", [])
-        json_store.update("interviews", interview["id"], {
+        repositories.update("interviews", interview["id"], {
             "assessment": interview["assessment"],
             "assessment_status": interview["assessment_status"],
             "assessment_error": interview["assessment_error"],
@@ -126,7 +126,7 @@ def rebuild_memories_from_interviews() -> dict:
         "success_count": success_count,
         "failure_count": failure_count,
         "memory_update_count": update_count,
-        "memory_count": len(json_store.list_all("knowledge_memories")),
+        "memory_count": len(repositories.list_all("knowledge_memories")),
     }
 
 
@@ -227,7 +227,7 @@ def _source_interview_ids(evidence: list[dict]) -> list[str]:
 
 
 def _find_memory_by_topic(topic: str) -> dict | None:
-    all_memories = json_store.list_all("knowledge_memories")
+    all_memories = repositories.list_all("knowledge_memories")
     for m in all_memories:
         if m.get("topic") == topic:
             return m

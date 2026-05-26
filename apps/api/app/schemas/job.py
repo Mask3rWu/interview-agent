@@ -14,6 +14,7 @@ class JobResponse(BaseModel):
     company: str = ""
     raw_text: str
     markdown_path: str = ""
+    summary_json: dict = Field(default_factory=dict)
     must_have_skills_json: list = Field(default_factory=list)
     domain: str = ""
     level: str = ""

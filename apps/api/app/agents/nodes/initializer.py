@@ -5,7 +5,7 @@ On subsequent runs (messages already present), acts as a pass-through.
 """
 from app.agents.state import InterviewState
 from app.services import resume_service, job_service, material_service, memory_service
-from app.core import json_store
+from app.db import repositories
 
 TOPIC_POOL = [
     "技术栈与项目经验",
@@ -25,7 +25,7 @@ async def initializer_node(state: InterviewState) -> dict:
         return {}
 
     # Load session from DB
-    session = json_store.get("interviews", session_id)
+    session = repositories.get("interviews", session_id)
     if session is None:
         return {"action": "assess", "assessment": {"error": "Session not found"}}
 
@@ -52,10 +52,7 @@ async def initializer_node(state: InterviewState) -> dict:
 
     weakness_memory = memory_service.list_weakness_memories(limit=5)
 
-    # Pick first topic: prefer job domain, then resume, then generic
-    first_topic = TOPIC_POOL[0]
-    if job:
-        first_topic = f"{job.get('name', '')}岗位核心要求"
+    first_topic = _pick_initial_topic(job, resume, weakness_memory)
 
     return {
         "resume_profile": resume,
@@ -74,4 +71,28 @@ async def initializer_node(state: InterviewState) -> dict:
         "assessment_status": "pending",
         "assessment_error": "",
         "memory_updates": [],
+        "router_source": "",
     }
+
+
+def _pick_initial_topic(job: dict | None, resume: dict | None, weakness_memory: list[dict]) -> str:
+    if job:
+        skills = job.get("must_have_skills_json") or []
+        if skills:
+            return str(skills[0])[:80]
+        if job.get("domain"):
+            return f"{job.get('domain')}岗位核心要求"
+        return f"{job.get('name', '')}岗位核心要求"
+
+    if resume:
+        questions = resume.get("potential_questions_json") or []
+        if questions:
+            return str(questions[0])[:80]
+        highlights = resume.get("project_highlights") or []
+        if highlights:
+            return str(highlights[0])[:80]
+
+    if weakness_memory:
+        return weakness_memory[0].get("topic", TOPIC_POOL[0])
+
+    return TOPIC_POOL[0]

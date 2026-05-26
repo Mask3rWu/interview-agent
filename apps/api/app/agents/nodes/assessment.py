@@ -13,6 +13,7 @@ from app.services.model_router import (
     log_llm_success,
     now_ms,
 )
+from app.services import markdown_store
 from langchain_core.messages import SystemMessage, HumanMessage
 
 
@@ -34,6 +35,7 @@ async def assessment_node(state: InterviewState) -> dict:
                     "assessment_status": "success",
                     "assessment_error": "",
                     "memory_updates": result.get("memory_updates", []),
+                    "report_path": markdown_store.write_report(state.get("session_id", ""), result),
                 }
             except Exception as exc:
                 log_llm_failure("assessment", exc, started_ms)

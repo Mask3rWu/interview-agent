@@ -21,3 +21,17 @@ class AssessmentResult(BaseModel):
     weaknesses: list[str] = Field(default_factory=list, description="答错或不完整清单")
     suggested_review: list[str] = Field(default_factory=list, description="建议复习知识点")
     memory_updates: list[dict] = Field(default_factory=list, description="记忆更新列表")
+
+
+class ResumeAnalysisResult(BaseModel):
+    summary: str = Field(default="", description="简历摘要")
+    skills_json: dict[str, list[str]] = Field(default_factory=dict, description="技能矩阵")
+    project_highlights: list[str] = Field(default_factory=list, description="项目亮点")
+    potential_questions_json: list[str] = Field(default_factory=list, description="潜在追问点")
+
+
+class JobAnalysisResult(BaseModel):
+    summary: str = Field(default="", description="岗位摘要")
+    must_have_skills_json: list[str] = Field(default_factory=list, description="核心要求")
+    domain: str = Field(default="", description="业务领域")
+    level: str = Field(default="", description="岗位级别")
