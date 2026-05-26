@@ -23,8 +23,8 @@ cp .env.example .env
 
 ```bash
 conda activate agent-py311
-cd apps/api
-python -m app.main
+cd apps
+python -m api.main
 # API 运行在 http://localhost:8000
 # Swagger 文档: http://localhost:8000/docs
 ```
