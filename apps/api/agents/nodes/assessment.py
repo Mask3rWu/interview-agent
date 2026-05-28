@@ -8,7 +8,7 @@ from api.agents.state import InterviewState
 from api.schemas.llm_outputs import AssessmentResult
 from api.services.model_router import (
     get_llm,
-    is_llm_available,
+    is_agent_llm_available,
     log_llm_failure,
     log_llm_success,
     now_ms,
@@ -21,7 +21,7 @@ async def assessment_node(state: InterviewState) -> dict:
     messages = state.get("messages", [])
     conversation = _build_conversation(messages)
 
-    if is_llm_available():
+    if is_agent_llm_available("assessment"):
         llm = get_llm("assessment")
         if llm:
             started_ms = now_ms()

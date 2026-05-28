@@ -260,9 +260,9 @@ def _reassess_interview_record(interview: dict[str, Any]) -> dict[str, Any]:
             "memory_updates": [],
         }
 
-    from api.services.model_router import get_llm, is_llm_available
+    from api.services.model_router import get_llm, is_agent_llm_available
 
-    if not is_llm_available():
+    if not is_agent_llm_available("assessment"):
         return {
             "assessment": None,
             "assessment_status": "failed",

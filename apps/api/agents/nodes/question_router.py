@@ -6,7 +6,7 @@ from api.agents.state import InterviewState
 from api.schemas.llm_outputs import RouterDecision
 from api.services.model_router import (
     get_llm,
-    is_llm_available,
+    is_agent_llm_available,
     log_llm_failure,
     log_llm_success,
     now_ms,
@@ -27,7 +27,7 @@ async def question_router_node(state: InterviewState) -> dict:
     current_round = state.get("current_round", 0)
     max_rounds = state.get("max_rounds", 8)
 
-    if is_llm_available():
+    if is_agent_llm_available("question_router"):
         llm = get_llm("question_router")
         if llm:
             started_ms = now_ms()

@@ -7,7 +7,7 @@ from api.services.mock_llm import mock_interviewer_question
 from api.rag.retrieval import format_context, retrieve_material_context
 from api.services.model_router import (
     get_llm,
-    is_llm_available,
+    is_agent_llm_available,
     log_llm_failure,
     log_llm_success,
     now_ms,
@@ -34,7 +34,7 @@ async def interviewer_node(state: InterviewState) -> dict:
     context = format_context(retrieved_chunks)
 
     # Try real LLM first
-    if is_llm_available():
+    if is_agent_llm_available("interviewer"):
         llm = get_llm("interviewer")
         if llm:
             started_ms = now_ms()
