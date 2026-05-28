@@ -227,20 +227,27 @@ export default function InterviewPage() {
             </div>
             {materials.length === 0 && <p className="text-xs text-zinc-400">暂无可选资料</p>}
             <div className={`flex flex-wrap gap-2 ${materialMode !== "partial" ? "opacity-50 pointer-events-none" : ""}`}>
-              {materials.map((m) => (
+              {materials.map((m) => {
+                const ready = !m.embedding_status || m.embedding_status === "ready";
+                return (
                 <button
                   key={m.id}
+                  disabled={!ready}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                     selMaterials.includes(m.id)
                       ? "bg-zinc-900 text-white border-zinc-900"
+                      : !ready
+                      ? "bg-zinc-50 border-zinc-200 text-zinc-300"
                       : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
                   }`}
-                  onClick={() => toggleMaterial(m.id)}
+                  onClick={() => ready && toggleMaterial(m.id)}
                 >
                   {m.name}
                   {m.chunk_count != null && <span className="ml-1 text-[10px] opacity-70">{m.chunk_count}</span>}
+                  {!ready && <span className="ml-1 text-[10px] opacity-70">{m.embedding_status}</span>}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 

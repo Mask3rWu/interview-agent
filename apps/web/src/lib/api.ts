@@ -12,6 +12,18 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+async function upload<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(`HTTP ${res.status}: ${(detail as { detail?: string }).detail || res.statusText}`);
+  }
+  return res.json();
+}
+
 export const api = {
   // Resumes
   createResume: (data: { name: string; raw_text: string }) =>
@@ -41,14 +53,27 @@ export const api = {
   createMaterial: (data: { name: string; type?: string; raw_text: string }) =>
     request<{ id: string; name: string }>("/materials", { method: "POST", body: JSON.stringify(data) }),
 
+  uploadMaterialPdf: (data: { name: string; file: File }) => {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("file", data.file);
+    return upload<{ id: string; name: string; embedding_status: string }>("/materials/upload", formData);
+  },
+
   listMaterials: () => request<{
     id: string; name: string; enabled: boolean; chunk_count: number; embedding_status: string;
+    processing_error?: string;
   }[]>("/materials"),
 
   getMaterial: (id: string) => request<{
     id: string; name: string; raw_text: string; chunk_count: number;
-    embedding_status: string; markdown_path: string;
+    embedding_status: string; markdown_path: string; processing_error?: string; source_file_path?: string;
   }>(`/materials/${id}`),
+
+  reprocessMaterial: (id: string) => request<{
+    id: string; name: string; raw_text: string; chunk_count: number;
+    embedding_status: string; markdown_path: string; processing_error?: string; source_file_path?: string;
+  }>(`/materials/${id}/reprocess`, { method: "POST" }),
 
   // Interviews
   createInterview: (data: {
