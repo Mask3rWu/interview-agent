@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.core.config import API_HOST, API_PORT
 from api.core.logging import setup_logging
 from api.routes import resumes, jobs, materials, interviews, memory
+from api.services import material_queue
 
 setup_logging()
 
@@ -23,6 +24,16 @@ app.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 app.include_router(materials.router, prefix="/materials", tags=["materials"])
 app.include_router(interviews.router, prefix="/interviews", tags=["interviews"])
 app.include_router(memory.router, prefix="/memory", tags=["memory"])
+
+
+@app.on_event("startup")
+async def startup():
+    material_queue.start_material_queue()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await material_queue.stop_material_queue()
 
 
 @app.get("/health")

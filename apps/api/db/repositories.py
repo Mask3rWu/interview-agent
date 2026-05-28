@@ -22,21 +22,35 @@ TABLE_MAP = {
 PUBLIC_COLUMNS = {
     "resume_profiles": "id,name,source_file_path,markdown_path,raw_text,summary_json,skills_json,potential_questions_json,project_highlights,created_at,updated_at",
     "job_profiles": "id,name,company,raw_text,markdown_path,summary_json,must_have_skills_json,domain,level,created_at,updated_at",
-    "materials": "id,name,type,raw_text,source_file_path,markdown_path,enabled,chunk_count,embedding_status,created_at",
+    "materials": "id,name,type,raw_text,source_file_path,markdown_path,enabled,chunk_count,embedding_status,processing_error,created_at",
     "material_chunks": "id,material_id,chunk_index,content,embedding,metadata_json,created_at",
     "interview_sessions": "id,resume_profile_id,job_profile_id,selected_material_ids,status,messages,current_topic,covered_topics,follow_up_count,unclear_count,current_round,max_rounds,assessment,assessment_status,assessment_error,memory_updates,transcript_path,report_path,router_source,retrieved_context,created_at,ended_at",
     "knowledge_memories": "id,topic,category,mastery_score,exposure_count,weakness_count,last_tested_at,next_review_at,evidence_json,source_interview_ids,updated_at",
 }
 
+MATERIALS_BASE_COLUMNS = "id,name,type,raw_text,source_file_path,markdown_path,enabled,chunk_count,embedding_status,created_at"
+OPTIONAL_MATERIAL_COLUMNS = {"processing_error"}
+
 
 def insert(table: str, record: dict) -> dict:
     if USE_SUPABASE:
-        rows = _request(
-            "POST",
-            _path(table, {"select": PUBLIC_COLUMNS[_table(table)]}),
-            body=_strip_none(record),
-            prefer="return=representation",
-        )
+        try:
+            rows = _request(
+                "POST",
+                _path(table, {"select": PUBLIC_COLUMNS[_table(table)]}),
+                body=_strip_none(record),
+                prefer="return=representation",
+            )
+        except RuntimeError as exc:
+            if _is_optional_material_column_error(table, exc):
+                rows = _request(
+                    "POST",
+                    _path(table, {"select": MATERIALS_BASE_COLUMNS}),
+                    body=_strip_optional_material_columns(record),
+                    prefer="return=representation",
+                )
+            else:
+                raise
         return rows[0]
     return json_store.insert(table, record)
 
@@ -63,21 +77,46 @@ def list_all(table: str) -> list[dict]:
             params["order"] = "created_at.desc"
         elif db_table == "knowledge_memories":
             params["order"] = "updated_at.desc"
-        return _request("GET", _path(table, params))
+        try:
+            return _request("GET", _path(table, params))
+        except RuntimeError as exc:
+            if _is_optional_material_column_error(table, exc):
+                params["select"] = MATERIALS_BASE_COLUMNS
+                rows = _request("GET", _path(table, params))
+                for row in rows:
+                    row.setdefault("processing_error", "")
+                return rows
+            raise
     return json_store.list_all(table)
 
 
 def update(table: str, record_id: str, record: dict) -> dict | None:
     if USE_SUPABASE:
-        rows = _request(
-            "PATCH",
-            _path(table, {
-                "id": f"eq.{record_id}",
-                "select": PUBLIC_COLUMNS[_table(table)],
-            }),
-            body=_strip_none(record),
-            prefer="return=representation",
-        )
+        try:
+            rows = _request(
+                "PATCH",
+                _path(table, {
+                    "id": f"eq.{record_id}",
+                    "select": PUBLIC_COLUMNS[_table(table)],
+                }),
+                body=_strip_none(record),
+                prefer="return=representation",
+            )
+        except RuntimeError as exc:
+            if _is_optional_material_column_error(table, exc):
+                rows = _request(
+                    "PATCH",
+                    _path(table, {
+                        "id": f"eq.{record_id}",
+                        "select": MATERIALS_BASE_COLUMNS,
+                    }),
+                    body=_strip_optional_material_columns(record),
+                    prefer="return=representation",
+                )
+                for row in rows:
+                    row.setdefault("processing_error", "")
+            else:
+                raise
         return rows[0] if rows else None
     return json_store.update(table, record_id, record)
 
@@ -99,6 +138,21 @@ def delete(table: str, record_id: str) -> bool:
         _request("DELETE", _path(table, {"id": f"eq.{record_id}"}))
         return True
     return json_store.delete(table, record_id)
+
+
+def delete_material_chunks(material_id: str) -> None:
+    if USE_SUPABASE:
+        _request("DELETE", _path("material_chunks", {"material_id": f"eq.{material_id}"}))
+        return
+
+    rows = [
+        row for row in json_store.list_all("material_chunks")
+        if row.get("material_id") == material_id
+    ]
+    for row in rows:
+        row_id = row.get("id")
+        if row_id:
+            json_store.delete("material_chunks", row_id)
 
 
 def rpc(function_name: str, payload: dict) -> Any:
@@ -158,3 +212,18 @@ def _table(table: str) -> str:
 
 def _strip_none(record: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in record.items() if value is not None}
+
+
+def _strip_optional_material_columns(record: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in _strip_none(record).items()
+        if key not in OPTIONAL_MATERIAL_COLUMNS
+    }
+
+
+def _is_optional_material_column_error(table: str, exc: RuntimeError) -> bool:
+    if _table(table) != "materials":
+        return False
+    message = str(exc)
+    return any(column in message for column in OPTIONAL_MATERIAL_COLUMNS)

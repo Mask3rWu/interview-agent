@@ -13,8 +13,10 @@ class MaterialResponse(BaseModel):
     name: str
     type: str = "markdown"
     raw_text: str
+    source_file_path: str | None = None
     markdown_path: str = ""
     enabled: bool = True
     chunk_count: int = 0
     embedding_status: str = "pending"
+    processing_error: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())

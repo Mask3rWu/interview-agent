@@ -1,0 +1,2 @@
+ALTER TABLE materials
+ADD COLUMN IF NOT EXISTS processing_error TEXT NOT NULL DEFAULT '';
