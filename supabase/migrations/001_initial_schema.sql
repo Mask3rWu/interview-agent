@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS materials (
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
     chunk_count INTEGER NOT NULL DEFAULT 0,
     embedding_status TEXT NOT NULL DEFAULT 'pending',
+    processing_error TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -46,7 +47,7 @@ CREATE TABLE IF NOT EXISTS material_chunks (
     material_id UUID NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
     chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
-    embedding VECTOR(1536),
+    embedding VECTOR(1024),
     metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(material_id, chunk_index)
@@ -97,7 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_memories_next_review ON knowledge_memor
 CREATE INDEX IF NOT EXISTS idx_interview_sessions_created_at ON interview_sessions(created_at DESC);
 
 CREATE OR REPLACE FUNCTION match_material_chunks(
-    query_embedding VECTOR(1536),
+    query_embedding VECTOR(1024),
     match_count INTEGER DEFAULT 2,
     filter_material_ids UUID[] DEFAULT NULL
 )

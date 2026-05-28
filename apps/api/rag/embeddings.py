@@ -1,24 +1,35 @@
 import hashlib
+import json
 import math
+import urllib.error
+import urllib.request
 
-from api.core.config import EMBEDDING_DIMENSIONS, EMBEDDING_MODEL
+from api.core.config import (
+    EMBEDDING_API_KEY,
+    EMBEDDING_BASE_URL,
+    EMBEDDING_DIMENSIONS,
+    EMBEDDING_MODEL,
+    EMBEDDING_PROVIDER,
+)
 
 
 async def embed_text(text: str) -> list[float]:
     """Return an embedding vector.
 
-    If an embedding model is configured this function is the integration point.
-    The deterministic local vector keeps tests and local demos usable.
+    A configured provider is used for production retrieval. The deterministic
+    local vector keeps tests and local demos usable when no model is configured.
     """
-    return _local_embedding(text, EMBEDDING_DIMENSIONS)
+    return embed_text_sync(text)
 
 
 def embed_text_sync(text: str) -> list[float]:
+    if _is_remote_configured():
+        return _remote_embedding(text)
     return _local_embedding(text, EMBEDDING_DIMENSIONS)
 
 
 def embedding_backend() -> str:
-    return "configured" if EMBEDDING_MODEL else "local_hash"
+    return f"{EMBEDDING_PROVIDER}:{EMBEDDING_MODEL}" if _is_remote_configured() else "local_hash"
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -64,3 +75,58 @@ def _tokens(text: str) -> list[str]:
     cjk = [ch for ch in lowered if "\u4e00" <= ch <= "\u9fff"]
     bigrams = ["".join(cjk[i:i + 2]) for i in range(max(0, len(cjk) - 1))]
     return words + bigrams
+
+
+def _is_remote_configured() -> bool:
+    return bool(EMBEDDING_MODEL)
+
+
+def _remote_embedding(text: str) -> list[float]:
+    if EMBEDDING_PROVIDER != "openai_compatible":
+        raise ValueError(f"Unsupported embedding provider: {EMBEDDING_PROVIDER}")
+    if not EMBEDDING_BASE_URL or not EMBEDDING_API_KEY:
+        raise ValueError("EMBEDDING_MODEL is set but EMBEDDING_BASE_URL or EMBEDDING_API_KEY is missing")
+
+    payload = {
+        "model": EMBEDDING_MODEL,
+        "input": text,
+        "encoding_format": "float",
+    }
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        _embeddings_url(EMBEDDING_BASE_URL),
+        data=data,
+        headers={
+            "Authorization": f"Bearer {EMBEDDING_API_KEY}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            raw = response.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")
+        raise RuntimeError(f"Embedding request failed: HTTP {exc.code} {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Embedding request failed: {exc.reason}") from exc
+
+    body = json.loads(raw)
+    rows = body.get("data") or []
+    if not rows or "embedding" not in rows[0]:
+        raise RuntimeError("Embedding response did not include data[0].embedding")
+
+    embedding = [float(value) for value in rows[0]["embedding"]]
+    if len(embedding) != EMBEDDING_DIMENSIONS:
+        raise RuntimeError(
+            f"Embedding dimension mismatch: got {len(embedding)}, expected {EMBEDDING_DIMENSIONS}"
+        )
+    return embedding
+
+
+def _embeddings_url(base_url: str) -> str:
+    normalized = base_url.strip().rstrip("/")
+    if normalized.endswith("/embeddings"):
+        return normalized
+    return f"{normalized}/embeddings"
