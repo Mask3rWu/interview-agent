@@ -1,0 +1,23 @@
+{
+  "name": "interviewagent",
+  "version": "1.0.0",
+  "description": "单用户多画像智能模拟面试系统。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mask3rWu/interview-agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mask3rWu/interview-agent/issues"
+  },
+  "homepage": "https://github.com/Mask3rWu/interview-agent#readme",
+  "devDependencies": {
+    "supabase": "^2.101.0"
+  }
+}
